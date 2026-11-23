@@ -453,5 +453,119 @@ moving.w.style.left=Math.max(0,e.clientX-moving.x)+'px';
 moving.w.style.top=Math.max(0,e.clientY-moving.y)+'px';
 }
 </script>
+ <!-- AHMEТOS SPOTIFY MUSIC APP -->
+<div id="spotifyApp" class="spotify-app">
+<div class="spotify-header">
+<span>🎵 Spotify</span>
+<button onclick="document.getElementById('spotifyApp').style.display='none'">✕</button>
+</div>
+<div class="spotify-content">
+<h2>Your Music</h2>
+<p>Listen to your favorite music through Spotify.</p>
+<input
+     id="spotifyLink"
+     type="text"
+     placeholder="Paste a Spotify song or playlist link..."
+>
+<button class="spotify-load" onclick="loadSpotify()">
+     Load Music
+</button>
+<div id="spotifyPlayer">
+<p>Your Spotify player will appear here.</p>
+</div>
+</div>
+</div>
+<style>
+.spotify-app {
+ display: none;
+ position: fixed;
+ z-index: 9999;
+ top: 10%;
+ left: 50%;
+ transform: translateX(-50%);
+ width: min(600px, 92vw);
+ background: #181818;
+ color: white;
+ border-radius: 14px;
+ overflow: hidden;
+ box-shadow: 0 15px 50px #0008;
+ font-family: Arial, sans-serif;
+}
+.spotify-header {
+ background: #202020;
+ padding: 15px 20px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ font-weight: bold;
+}
+.spotify-header button {
+ background: transparent;
+ color: white;
+ border: none;
+ font-size: 18px;
+ cursor: pointer;
+}
+.spotify-content {
+ padding: 24px;
+}
+.spotify-content h2 {
+ margin-top: 0;
+}
+.spotify-content input {
+ box-sizing: border-box;
+ width: 100%;
+ padding: 13px;
+ margin: 15px 0 10px;
+ border: 1px solid #444;
+ border-radius: 8px;
+ background: #282828;
+ color: white;
+}
+.spotify-load {
+ width: 100%;
+ padding: 12px;
+ background: #1ed760;
+ border: none;
+ border-radius: 25px;
+ font-weight: bold;
+ cursor: pointer;
+}
+#spotifyPlayer {
+ margin-top: 20px;
+}
+#spotifyPlayer iframe {
+ width: 100%;
+ border: none;
+ border-radius: 12px;
+}
+</style>
+<script>
+function loadSpotify() {
+ const link = document.getElementById("spotifyLink").value.trim();
+ const player = document.getElementById("spotifyPlayer");
+ const match = link.match(
+   /open\.spotify\.com\/(track|album|playlist|episode|show)\/([a-zA-Z0-9]+)/
+ );
+ if (!match) {
+   player.innerHTML =
+     "<p>Please enter a valid Spotify song, album, playlist, or podcast link.</p>";
+   return;
+ }
+ const type = match[1];
+ const id = match[2];
+ player.innerHTML = `
+<iframe
+     src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator"
+     height="352"
+     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+     loading="lazy">
+</iframe>
+ `;
+}
+</script>
+ <button onclick="document.getElementById('spotifyApp').style.display='block'">
+ 🎵 Spotify
+</button>
 </body>
 </html>
