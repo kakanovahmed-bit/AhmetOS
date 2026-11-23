@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AhmetOS</title>
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+height:100vh;
+overflow:hidden;
+font-family:"Segoe UI",Arial,sans-serif;
+color:#202b3b;
+background:#173b63;
+}
+.wallpaper{
+position:fixed;inset:0;z-index:-1;
+background:
+radial-gradient(ellipse at 75% 40%,#8bd0fa,transparent 25%),
+radial-gradient(ellipse at 70% 50%,#237cba,transparent 45%),
+linear-gradient(135deg,#142b4c,#286da0);
+}
+.desktop{padding:25px;height:calc(100vh - 60px)}
+.icons{display:flex;flex-direction:column;gap:15px;width:90px}
+.appicon{
+background:transparent;border:0;color:white;
+display:flex;flex-direction:column;align-items:center;
+gap:6px;cursor:pointer;padding:9px;border-radius:7px;
+}
+.appicon:hover{background:#ffffff30}
+.appicon span:first-child{font-size:30px}
+.appicon span:last-child{font-size:12px}
+.taskbar{
+position:fixed;bottom:0;left:0;right:0;height:60px;
+background:#eef3f9dd;backdrop-filter:blur(25px);
+display:flex;justify-content:center;align-items:center;
+gap:8px;z-index:100;
+}
+.taskbar button{
+border:0;background:transparent;border-radius:8px;
+width:44px;height:44px;font-size:23px;cursor:pointer;
+}
+.taskbar button:hover{background:#d5e3f3}
+.taskbar .start{color:#1678cb}
+.clock{
+position:absolute;right:15px;font-size:12px;
+text-align:right;
+}
+.startmenu{
+display:none;position:fixed;bottom:70px;left:50%;
+transform:translateX(-50%);
+width:min(550px,95vw);height:470px;
+background:#f4f7fcee;backdrop-filter:blur(25px);
+border-radius:12px;padding:25px;
+box-shadow:0 15px 50px #0004;z-index:90;
+}
+.startmenu.show{display:block}
+.search{
+width:100%;padding:12px;border:1px solid #cbd6e2;
+border-bottom:2px solid #267ac4;border-radius:5px;
+}
+.pinned{
+display:grid;grid-template-columns:repeat(4,1fr);
+gap:12px;margin-top:20px;
+}
+.pin{
+border:0;background:transparent;padding:13px 5px;
+border-radius:8px;cursor:pointer;color:#26364a;
+}
+.pin:hover{background:#dce8f5}
+.pin span{display:block;font-size:26px;margin-bottom:7px}
+.window{
+display:none;position:absolute;top:80px;left:20%;
+width:min(550px,90vw);max-height:75vh;
+background:#f7f9fceF;backdrop-filter:blur(25px);
+border:1px solid white;border-radius:10px;
+box-shadow:0 20px 60px #0004;overflow:hidden;
+z-index:20;
+}
+.window.open{display:block}
+.header{
+height:43px;padding:12px 15px;
+background:#e9eef5;display:flex;
+justify-content:space-between;cursor:grab;
+font-size:13px;font-weight:600;
+}
+.header button{
+border:0;background:transparent;cursor:pointer;
+font-size:17px;
+}
+.content{padding:20px;overflow:auto}
+h2{margin-top:0;font-size:21px}
+textarea{
+width:100%;height:230px;padding:13px;
+border:1px solid #cbd5e1;border-radius:7px;
+font:inherit;resize:vertical;
+}
+input{
+padding:10px;border:1px solid #cbd5e1;
+border-radius:6px;
+}
+.action{
+padding:10px 15px;background:#176bc1;
+color:white;border:0;border-radius:6px;cursor:pointer;
+}
+.calc{
+display:grid;grid-template-columns:repeat(4,1fr);
+gap:7px;
+}
+.calc input{grid-column:span 4;text-align:right;font-size:25px}
+.calc button{
+padding:15px;border:0;border-radius:6px;
+background:#e4ebf4;cursor:pointer;font-size:17px;
+}
+.calc button:hover{background:#ccddef}
+.calc .equal{background:#176bc1;color:white}
+li{padding:7px}
+.muted{color:#718096;font-size:12px}
+@media(max-width:600px){
+.taskbar{justify-content:flex-start;padding-left:10px}
+.window{left:5%;top:70px}
+.clock{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="wallpaper"></div>
+<div class="desktop">
+<div class="icons">
+<button class="appicon" onclick="openApp('notes')">
+<span>📝</span><span>Notes</span>
+</button>
+<button class="appicon" onclick="openApp('files')">
+<span>📁</span><span>Files</span>
+</button>
+<button class="appicon" onclick="openApp('calculator')">
+<span>🧮</span><span>Calculator</span>
+</button>
+<button class="appicon" onclick="openApp('calendar')">
+<span>📅</span><span>Calendar</span>
+</button>
+</div>
+</div>
+<!-- TASKBAR -->
+<div class="taskbar">
+<button class="start" onclick="toggleStart()">⊞</button>
+<button onclick="openApp('files')">📁</button>
+<button onclick="openApp('browser')">🌐</button>
+<button onclick="openApp('notes')">📝</button>
+<button onclick="openApp('calculator')">🧮</button>
+<div class="clock" id="clock"></div>
+</div>
+<!-- START MENU -->
+<div class="startmenu" id="startmenu">
+<input class="search" placeholder="Search applications..."
+oninput="searchApps(this.value)">
+<h3>Pinned applications</h3>
+<div class="pinned" id="pinned">
+<button class="pin" data-name="notes" onclick="openApp('notes')"><span>📝</span>Notes</button>
+<button class="pin" data-name="calculator" onclick="openApp('calculator')"><span>🧮</span>Calculator</button>
+<button class="pin" data-name="calendar" onclick="openApp('calendar')"><span>📅</span>Calendar</button>
+<button class="pin" data-name="tasks" onclick="openApp('tasks')"><span>☑️</span>To Do</button>
+<button class="pin" data-name="files" onclick="openApp('files')"><span>📁</span>Files</button>
+<button class="pin" data-name="browser" onclick="openApp('browser')"><span>🌐</span>Browser</button>
+<button class="pin" data-name="settings" onclick="openApp('settings')"><span>⚙️</span>Settings</button>
+<button class="pin" data-name="about" onclick="openApp('about')"><span>💠</span>About</button>
+</div>
+</div>
+<!-- NOTES -->
+<div class="window" id="notes">
+<div class="header" onmousedown="drag(event,'notes')">
+ 📝 Notes <button onclick="closeApp('notes')">×</button>
+</div>
+<div class="content">
+<h2>My Notes</h2>
+<p class="muted">Automatically saved in your browser.</p>
+<textarea id="note" placeholder="Write something..."></textarea>
+</div>
+</div>
+<!-- CALCULATOR -->
+<div class="window" id="calculator">
+<div class="header" onmousedown="drag(event,'calculator')">
+ 🧮 Calculator <button onclick="closeApp('calculator')">×</button>
+</div>
+<div class="content">
+<h2>Calculator</h2>
+<div class="calc">
+<input id="display" value="0" readonly>
+<button onclick="clearCalc()">C</button>
+<button onclick="add('(')">(</button>
+<button onclick="add(')')">)</button>
+<button onclick="add('/')">÷</button>
+<button onclick="add('7')">7</button>
+<button onclick="add('8')">8</button>
+<button onclick="add('9')">9</button>
+<button onclick="add('*')">×</button>
+<button onclick="add('4')">4</button>
+<button onclick="add('5')">5</button>
+<button onclick="add('6')">6</button>
+<button onclick="add('-')">−</button>
+<button onclick="add('1')">1</button>
+<button onclick="add('2')">2</button>
+<button onclick="add('3')">3</button>
+<button onclick="add('+')">+</button>
+<button onclick="add('0')">0</button>
+<button onclick="add('.')">.</button>
+<button onclick="backspace()">⌫</button>
+<button class="equal" onclick="calculate()">=</button>
+</div>
+</div>
+</div>
+<!-- TO DO -->
+<div class="window" id="tasks">
+<div class="header" onmousedown="drag(event,'tasks')">
+ ☑️ To Do <button onclick="closeApp('tasks')">×</button>
+</div>
+<div class="content">
+<h2>My Tasks</h2>
+<input id="taskInput" placeholder="Enter a task...">
+<button class="action" onclick="addTask()">Add</button>
+<ul id="taskList"></ul>
+</div>
+</div>
+<!-- CALENDAR -->
+<div class="window" id="calendar">
+<div class="header" onmousedown="drag(event,'calendar')">
+ 📅 Calendar <button onclick="closeApp('calendar')">×</button>
+</div>
+<div class="content">
+<h2 id="month"></h2>
+<div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center"></div>
+</div>
+</div>
+<!-- FILES -->
+<div class="window" id="files">
+<div class="header" onmousedown="drag(event,'files')">
+ 📁 File Explorer <button onclick="closeApp('files')">×</button>
+</div>
+<div class="content">
+<h2>Quick Access</h2>
+<p>📂 Documents</p>
+<p>🖼️ Pictures</p>
+<p>🎵 Music</p>
+<p>⬇️ Downloads</p>
+<p class="muted">Demo folders. This app does not access your computer's files.</p>
+</div>
+</div>
+<!-- BROWSER -->
+<div class="window" id="browser">
+<div class="header" onmousedown="drag(event,'browser')">
+ 🌐 Web Launcher <button onclick="closeApp('browser')">×</button>
+</div>
+<div class="content">
+<h2>Open a Website</h2>
+<input id="url" placeholder="example.com" style="width:75%">
+<button class="action" onclick="go()">Go</button>
+</div>
+</div>
+<!-- SETTINGS -->
+<div class="window" id="settings">
+<div class="header" onmousedown="drag(event,'settings')">
+ ⚙️ Settings <button onclick="closeApp('settings')">×</button>
+</div>
+<div class="content">
+<h2>Personalization</h2>
+<button class="action" onclick="changeWallpaper()">Change Wallpaper</button>
+<p>Operating System: AhmetOS</p>
+<p>Version: 2.0</p>
+</div>
+</div>
+<!-- ABOUT -->
+<div class="window" id="about">
+<div class="header">
+ 💠 About <button onclick="closeApp('about')">×</button>
+</div>
+<div class="content">
+<h2>AhmetOS</h2>
+<p>A personal web operating system.</p>
+<p>Built with HTML, CSS and JavaScript.</p>
+<p>Version 2.0</p>
+</div>
+</div>
+<script>
+// APPLICATION MANAGEMENT
+let z=20;
+function openApp(id){
+const w=document.getElementById(id);
+w.classList.add('open');
+w.style.zIndex=++z;
+document.getElementById('startmenu').classList.remove('show');
+}
+function closeApp(id){
+document.getElementById(id).classList.remove('open');
+}
+function toggleStart(){
+document.getElementById('startmenu').classList.toggle('show');
+}
+function searchApps(q){
+document.querySelectorAll('.pin').forEach(p=>{
+ p.style.display=p.dataset.name.includes(q.toLowerCase())?'block':'none';
+});
+}
+// CLOCK
+function clock(){
+const d=new Date();
+document.getElementById('clock').innerHTML=
+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+
+'<br>'+d.toLocaleDateString();
+}
+clock();
+setInterval(clock,15000);
+// NOTES
+const note=document.getElementById('note');
+note.value=localStorage.getItem('ahmet-note')||'';
+note.addEventListener('input',()=>{
+localStorage.setItem('ahmet-note',note.value);
+});
+// CALCULATOR
+let expression='';
+function add(v){
+expression+=v;
+document.getElementById('display').value=expression;
+}
+function clearCalc(){
+expression='';
+document.getElementById('display').value='0';
+}
+function backspace(){
+expression=expression.slice(0,-1);
+document.getElementById('display').value=expression||'0';
+}
+function calculate(){
+try{
+ if(!/^[0-9+\-*/().\s]+$/.test(expression))throw Error();
+ const result=Function('"use strict";return ('+expression+')')();
+ if(!Number.isFinite(result))throw Error();
+ expression=String(result);
+ document.getElementById('display').value=expression;
+}catch{
+ expression='';
+ document.getElementById('display').value='Error';
+}
+}
+// TASKS
+let tasks=JSON.parse(localStorage.getItem('ahmet-tasks')||'[]');
+function saveTasks(){
+localStorage.setItem('ahmet-tasks',JSON.stringify(tasks));
+renderTasks();
+}
+function renderTasks(){
+const list=document.getElementById('taskList');
+list.innerHTML='';
+tasks.forEach((t,i)=>{
+ const li=document.createElement('li');
+ const label=document.createElement('label');
+ const cb=document.createElement('input');
+ cb.type='checkbox';
+ cb.checked=t.done;
+ cb.onchange=()=>{
+  tasks[i].done=cb.checked;
+  saveTasks();
+ };
+ label.append(cb,document.createTextNode(' '+t.text));
+ if(t.done)label.style.textDecoration='line-through';
+ const del=document.createElement('button');
+ del.textContent=' Delete';
+ del.onclick=()=>{
+  tasks.splice(i,1);
+  saveTasks();
+ };
+ li.append(label,del);
+ list.append(li);
+});
+}
+function addTask(){
+const input=document.getElementById('taskInput');
+if(input.value.trim()){
+ tasks.push({text:input.value.trim(),done:false});
+ input.value='';
+ saveTasks();
+}
+}
+renderTasks();
+// CALENDAR
+function renderCalendar(){
+const d=new Date(),y=d.getFullYear(),m=d.getMonth();
+document.getElementById('month').textContent=
+d.toLocaleDateString([],{month:'long',year:'numeric'});
+const grid=document.getElementById('calendarGrid');
+grid.innerHTML='';
+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(day=>{
+ const e=document.createElement('div');
+ e.textContent=day;
+ grid.append(e);
+});
+const first=new Date(y,m,1).getDay();
+const days=new Date(y,m+1,0).getDate();
+for(let i=0;i<first;i++)grid.append(document.createElement('div'));
+for(let n=1;n<=days;n++){
+ const e=document.createElement('div');
+ e.textContent=n;
+ if(n===d.getDate()){
+  e.style.background='#176bc1';
+  e.style.color='white';
+  e.style.borderRadius='50%';
+ }
+ grid.append(e);
+}
+}
+renderCalendar();
+// WEBSITE LAUNCHER
+function go(){
+let url=document.getElementById('url').value.trim();
+if(!url)return;
+if(!/^https?:\/\//i.test(url))url='https://'+url;
+try{
+ const u=new URL(url);
+ if(!['http:','https:'].includes(u.protocol))throw Error();
+ window.open(u.href,'_blank','noopener');
+}catch{
+ alert('Enter a valid website address.');
+}
+}
+// WALLPAPER
+let wallpaper=0;
+function changeWallpaper(){
+const colors=[
+ 'linear-gradient(135deg,#142b4c,#286da0)',
+ 'linear-gradient(135deg,#35204f,#9b65a9)',
+ 'linear-gradient(135deg,#173f38,#6ba88e)',
+ 'linear-gradient(135deg,#65422f,#d3a77d)'
+];
+wallpaper=(wallpaper+1)%colors.length;
+document.querySelector('.wallpaper').style.background=colors[wallpaper];
+}
+// DRAG WINDOWS
+let moving=null;
+function drag(e,id){
+if(e.target.tagName==='BUTTON')return;
+const w=document.getElementById(id);
+moving={
+ w,
+ x:e.clientX-w.offsetLeft,
+ y:e.clientY-w.offsetTop
+};
+document.onmousemove=move;
+document.onmouseup=()=>{moving=null;document.onmousemove=null};
+}
+function move(e){
+if(!moving)return;
+moving.w.style.left=Math.max(0,e.clientX-moving.x)+'px';
+moving.w.style.top=Math.max(0,e.clientY-moving.y)+'px';
+}
+</script>
+</body>
+</html>
